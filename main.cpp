@@ -22,7 +22,5 @@ int main() {
         }
     }
     auto finish = steady_clock::now();
-    if (found) {
-        printf("S: %7.4fs\n", (double) duration_cast<microseconds>(finish - start).count() / 1000000.0);
-    }
+    printf("S: %7.4fs\n", (double) duration_cast<microseconds>(finish - start).count() / 1000000.0);
 }
