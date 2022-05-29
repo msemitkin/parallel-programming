@@ -1,5 +1,6 @@
 #include <iostream>
 #include <mpi.h>
+#include <random>
 
 #define MASTER 0
 #define FROM_MASTER 1
@@ -20,7 +21,6 @@ void guess(unsigned long long from_inclusive, unsigned long long to_exclusive, u
 
 
 int main(int argc, char *argv[]) {
-    unsigned long long guessed = MAX_NUMBER / 3;
     int procNum, procRank;
 
     MPI_Init(&argc, &argv);
@@ -35,6 +35,11 @@ int main(int argc, char *argv[]) {
     int num_of_workers = procNum - 1;
 
     if (procRank == MASTER) {
+        std::random_device rd;
+        std::default_random_engine generator(rd());
+        std::uniform_int_distribution<long long unsigned> distribution(0, MAX_NUMBER);
+        unsigned long long guessed = distribution(generator);
+        cout << "guessed: " << guessed << endl;
         master_routine(num_of_workers, guessed);
     } else {
         worker_routine();
