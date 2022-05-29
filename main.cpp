@@ -24,7 +24,7 @@ void guess(unsigned long long from_inclusive, unsigned long long to_exclusive, u
 }
 
 
-void worker_routine(int procRank) {
+void worker_routine() {
     MPI_Status status;
     unsigned long long lower_bound, upper_bound, guessed_received;
     MPI_Recv(&lower_bound, 1, MPI_UNSIGNED_LONG_LONG, MASTER, FROM_MASTER, MPI_COMM_WORLD, &status);
@@ -81,7 +81,7 @@ int main(int argc, char *argv[]) {
     if (procRank == MASTER) {
         master_routine(num_of_workers, guessed);
     } else {
-        worker_routine(procRank);
+        worker_routine();
     }
 
     MPI_Finalize();
