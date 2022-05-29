@@ -7,16 +7,6 @@ static const int NUMBER_OF_THREADS = 4;
 using namespace std;
 using namespace std::chrono;
 
-bool guess(unsigned long long from_inclusive, unsigned long long to_inclusive, unsigned long long guessed) {
-    for (unsigned long long i = from_inclusive; i <= to_inclusive; i++) {
-        if (i == guessed) {
-            return true;
-        }
-    }
-    return false;
-}
-
-
 int main() {
     unsigned long long guessed = MAX_NUMBER / 10;
 
