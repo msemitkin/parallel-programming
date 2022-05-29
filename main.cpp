@@ -13,8 +13,8 @@ using namespace std;
 using namespace std::chrono;
 
 
-void guess(unsigned long long from_inclusive, unsigned long long to_inclusive, unsigned long long guessed) {
-    for (unsigned long long i = from_inclusive; i <= to_inclusive; i++) {
+void guess(unsigned long long from_inclusive, unsigned long long to_exclusive, unsigned long long guessed) {
+    for (unsigned long long i = from_inclusive; i < to_exclusive; i++) {
         if (i == guessed) {
             int guess_status = 1;
             MPI_Send(&guess_status, 1, MPI_INT, MASTER, 200, MPI_COMM_WORLD);
@@ -30,10 +30,6 @@ void worker_routine(int procRank) {
     MPI_Recv(&lower_bound, 1, MPI_UNSIGNED_LONG_LONG, MASTER, FROM_MASTER, MPI_COMM_WORLD, &status);
     MPI_Recv(&upper_bound, 1, MPI_UNSIGNED_LONG_LONG, MASTER, FROM_MASTER, MPI_COMM_WORLD, &status);
     MPI_Recv(&guessed_received, 1, MPI_UNSIGNED_LONG_LONG, MASTER, FROM_MASTER, MPI_COMM_WORLD, &status);
-    cout << "From:" << procRank
-         << "\nlowerBound: " << lower_bound
-         << "\nupperBound: " << upper_bound
-         << endl;
 
     guess(lower_bound, upper_bound, guessed_received);
 }
@@ -42,25 +38,18 @@ void worker_routine(int procRank) {
 void master_routine(int num_of_workers, unsigned long long guessed) {
     unsigned long long lower_bound, upper_bound;
     MPI_Status status;
-//    cout << "number of workers: " << num_of_workers << endl;
 
     auto start = steady_clock::now();
     unsigned long long segment_size = NUMBER_OF_POSSIBLE_COMBINATIONS / num_of_workers;
     lower_bound = 0;
     upper_bound = segment_size + NUMBER_OF_POSSIBLE_COMBINATIONS % num_of_workers;
-    cout << "segment size: " << segment_size << endl;
-    cout << "NUMBER_OF_POSSIBLE_COMBINATIONS: " << NUMBER_OF_POSSIBLE_COMBINATIONS << endl;
-    cout << "NUMBER_OF_POSSIBLE_COMBINATIONS % num_of_workers: " << NUMBER_OF_POSSIBLE_COMBINATIONS % num_of_workers
-         << endl;
 
     for (int dest = 1; dest <= num_of_workers; ++dest) {
         MPI_Send(&lower_bound, 1, MPI_UNSIGNED_LONG_LONG, dest, FROM_MASTER, MPI_COMM_WORLD);
         MPI_Send(&upper_bound, 1, MPI_UNSIGNED_LONG_LONG, dest, FROM_MASTER, MPI_COMM_WORLD);
         MPI_Send(&guessed, 1, MPI_UNSIGNED_LONG_LONG, dest, FROM_MASTER, MPI_COMM_WORLD);
-        lower_bound = upper_bound + 1;
+        lower_bound = upper_bound;
         upper_bound = upper_bound + segment_size;
-
-        //        cout << "sent to " << dest << endl;
     }
 
     int guess_status;
