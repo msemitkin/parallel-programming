@@ -1,9 +1,10 @@
 #include <iostream>
 #include <omp.h>
+#include <random>
 
 #define MAX_NUMBER (4294967295)
 
-static const int NUMBER_OF_THREADS = 4;
+static const int NUMBER_OF_THREADS = 5;
 using namespace std;
 using namespace std::chrono;
 
@@ -19,7 +20,11 @@ bool guess(unsigned long long from_inclusive, unsigned long long to_inclusive, u
 }
 
 int main() {
-    unsigned long long guessed = MAX_NUMBER / 3;
+    std::random_device rd;
+    std::default_random_engine generator(rd());
+    std::uniform_int_distribution<long long unsigned> distribution(0, MAX_NUMBER);
+    unsigned long long guessed = distribution(generator);
+    cout << "guessed: " << guessed << endl;
 
     auto start = steady_clock::now();
     omp_set_num_threads(NUMBER_OF_THREADS);
