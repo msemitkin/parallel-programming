@@ -62,10 +62,7 @@ void master_routine(int num_of_workers, unsigned long long guessed) {
 
 int main(int argc, char *argv[]) {
     unsigned long long guessed = MAX_NUMBER / 3;
-    int procNum;
-    int procRank;
-    int num_of_workers;
-
+    int procNum, procRank;
 
     MPI_Init(&argc, &argv);
     MPI_Comm_size(MPI_COMM_WORLD, &procNum);
@@ -76,7 +73,7 @@ int main(int argc, char *argv[]) {
         MPI_Abort(MPI_COMM_WORLD, 1);
         exit(1);
     }
-    num_of_workers = procNum - 1;
+    int num_of_workers = procNum - 1;
 
     if (procRank == MASTER) {
         master_routine(num_of_workers, guessed);
