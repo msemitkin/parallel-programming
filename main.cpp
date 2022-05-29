@@ -12,26 +12,35 @@
 using namespace std;
 using namespace std::chrono;
 
+void master_routine(int num_of_workers, unsigned long long guessed);
 
-void guess(unsigned long long from_inclusive, unsigned long long to_exclusive, unsigned long long guessed) {
-    for (unsigned long long i = from_inclusive; i < to_exclusive; i++) {
-        if (i == guessed) {
-            int guess_status = 1;
-            MPI_Send(&guess_status, 1, MPI_INT, MASTER, 200, MPI_COMM_WORLD);
-            return;
-        }
+void worker_routine();
+
+void guess(unsigned long long from_inclusive, unsigned long long to_exclusive, unsigned long long guessed);
+
+
+int main(int argc, char *argv[]) {
+    unsigned long long guessed = MAX_NUMBER / 3;
+    int procNum, procRank;
+
+    MPI_Init(&argc, &argv);
+    MPI_Comm_size(MPI_COMM_WORLD, &procNum);
+    MPI_Comm_rank(MPI_COMM_WORLD, &procRank);
+
+    if (procNum < 2) {
+        cout << "Need at least two MPI tasks. Quitting..." << endl;
+        MPI_Abort(MPI_COMM_WORLD, 1);
+        exit(1);
     }
-}
+    int num_of_workers = procNum - 1;
 
+    if (procRank == MASTER) {
+        master_routine(num_of_workers, guessed);
+    } else {
+        worker_routine();
+    }
 
-void worker_routine() {
-    MPI_Status status;
-    unsigned long long lower_bound, upper_bound, guessed_received;
-    MPI_Recv(&lower_bound, 1, MPI_UNSIGNED_LONG_LONG, MASTER, FROM_MASTER, MPI_COMM_WORLD, &status);
-    MPI_Recv(&upper_bound, 1, MPI_UNSIGNED_LONG_LONG, MASTER, FROM_MASTER, MPI_COMM_WORLD, &status);
-    MPI_Recv(&guessed_received, 1, MPI_UNSIGNED_LONG_LONG, MASTER, FROM_MASTER, MPI_COMM_WORLD, &status);
-
-    guess(lower_bound, upper_bound, guessed_received);
+    MPI_Finalize();
 }
 
 
@@ -60,26 +69,23 @@ void master_routine(int num_of_workers, unsigned long long guessed) {
     MPI_Abort(MPI_COMM_WORLD, 0);
 }
 
-int main(int argc, char *argv[]) {
-    unsigned long long guessed = MAX_NUMBER / 3;
-    int procNum, procRank;
 
-    MPI_Init(&argc, &argv);
-    MPI_Comm_size(MPI_COMM_WORLD, &procNum);
-    MPI_Comm_rank(MPI_COMM_WORLD, &procRank);
+void worker_routine() {
+    MPI_Status status;
+    unsigned long long lower_bound, upper_bound, guessed_received;
+    MPI_Recv(&lower_bound, 1, MPI_UNSIGNED_LONG_LONG, MASTER, FROM_MASTER, MPI_COMM_WORLD, &status);
+    MPI_Recv(&upper_bound, 1, MPI_UNSIGNED_LONG_LONG, MASTER, FROM_MASTER, MPI_COMM_WORLD, &status);
+    MPI_Recv(&guessed_received, 1, MPI_UNSIGNED_LONG_LONG, MASTER, FROM_MASTER, MPI_COMM_WORLD, &status);
 
-    if (procNum < 2) {
-        cout << "Need at least two MPI tasks. Quitting..." << endl;
-        MPI_Abort(MPI_COMM_WORLD, 1);
-        exit(1);
+    guess(lower_bound, upper_bound, guessed_received);
+}
+
+void guess(unsigned long long from_inclusive, unsigned long long to_exclusive, unsigned long long guessed) {
+    for (unsigned long long i = from_inclusive; i < to_exclusive; i++) {
+        if (i == guessed) {
+            int guess_status = 1;
+            MPI_Send(&guess_status, 1, MPI_INT, MASTER, 200, MPI_COMM_WORLD);
+            return;
+        }
     }
-    int num_of_workers = procNum - 1;
-
-    if (procRank == MASTER) {
-        master_routine(num_of_workers, guessed);
-    } else {
-        worker_routine();
-    }
-
-    MPI_Finalize();
 }
