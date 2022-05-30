@@ -15,6 +15,8 @@ void master_routine(int num_of_workers, unsigned long long guessed);
 
 void worker_routine();
 
+unsigned long long get_random_number(unsigned long long lower_bound, unsigned long long upper_bound);
+
 void guess(unsigned long long from_inclusive, unsigned long long to_exclusive, unsigned long long guessed);
 
 
@@ -33,10 +35,7 @@ int main(int argc, char *argv[]) {
     int num_of_workers = procNum - 1;
 
     if (procRank == MASTER) {
-        std::random_device rd;
-        std::default_random_engine generator(rd());
-        std::uniform_int_distribution<long long unsigned> distribution(0, MAX_NUMBER);
-        unsigned long long guessed = distribution(generator);
+        unsigned long long guessed = get_random_number(0, MAX_NUMBER);
         cout << "guessed: " << guessed << endl;
         master_routine(num_of_workers, guessed);
     } else {
@@ -91,4 +90,12 @@ void guess(unsigned long long from_inclusive, unsigned long long to_exclusive, u
             return;
         }
     }
+}
+
+
+unsigned long long get_random_number(unsigned long long lower_bound, unsigned long long upper_bound) {
+    std::random_device rd;
+    std::default_random_engine generator(rd());
+    std::uniform_int_distribution<long long unsigned> distribution(lower_bound, upper_bound);
+    return distribution(generator);
 }
